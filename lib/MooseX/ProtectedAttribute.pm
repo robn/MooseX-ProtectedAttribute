@@ -22,7 +22,7 @@ sub has_protected {
     $options{traits} ||= [];
     unshift @{$options{traits}}, 'Protected';
     $options{protection} ||= "protected";
-    Class::MOP::Class->initialize($callar)->add_attribute($name, %options);
+    Class::MOP::Class->initialize($caller)->add_attribute($name, %options);
 }
 
 sub has_private {
@@ -32,7 +32,7 @@ sub has_private {
     $options{traits} ||= [];
     unshift @{$options{traits}}, 'Protected';
     $options{protection} ||= "private";
-    Class::MOP::Class->initialize($callar)->add_attribute($name, %options);
+    Class::MOP::Class->initialize($caller)->add_attribute($name, %options);
 }
 
 1;
