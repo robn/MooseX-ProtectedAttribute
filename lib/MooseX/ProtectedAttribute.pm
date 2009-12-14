@@ -16,9 +16,23 @@ Moose::Exporter->setup_import_methods(
 );
 
 sub has_protected {
+    my $caller = shift;
+    my $name = shift;
+    my %options = @_;
+    $options{traits} ||= [];
+    unshift @{$options{traits}}, 'Protected';
+    $options{protection} ||= "protected";
+    Class::MOP::Class->initialize($callar)->add_attribute($name, %options);
 }
 
 sub has_private {
+    my $caller = shift;
+    my $name = shift;
+    my %options = @_;
+    $options{traits} ||= [];
+    unshift @{$options{traits}}, 'Protected';
+    $options{protection} ||= "private";
+    Class::MOP::Class->initialize($callar)->add_attribute($name, %options);
 }
 
 1;
