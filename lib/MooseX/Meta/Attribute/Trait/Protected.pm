@@ -34,9 +34,6 @@ around "_process_accessors" => sub {
             my $orig = shift;
             my ($self) = @_;
 
-            printf "caller: %s\n", scalar caller;
-            printf "  self: %s\n", ref $self;
-
             if (caller ne ref $self) {
                 confess "Method '$method' in class '$class' is private";
             }
