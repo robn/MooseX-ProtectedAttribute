@@ -1,35 +1,57 @@
 package MooseX::Meta::Attribute::Trait::Protected;
 
 use Moose::Role;
+use MooseX::Types::Moose qw(Str HashRef);
+use MooseX::Types::Structured qw(Dict Optional);
+use MooseX::Types -declare => [qw(ProtectionTable)];
+
+my @types = qw(accessor reader writer predicate clearer);
 
 has "protection" => (
     is      => "rw",
-    isa     => "Str",
-    default => "private",
+    isa     => ProtectionTable,
+    default => sub {
+        return { map { $_ => "private" } @types };
+    },
+    coerce  => 1,
 );
+
+subtype ProtectionTable,
+    as Dict[
+        accessor  => Optional[Str],
+        reader    => Optional[Str],
+        writer    => Optional[Str],
+        predicate => Optional[Str],
+        clearer   => Optional[Str],
+    ];
+
+coerce ProtectionTable,
+    from Str,
+    via {
+        my $p = $_;
+        +{ map { $_ => $p } qw(accessor reader writer predicate clearer) };
+    };
 
 around "_process_accessors" => sub {
     my $orig = shift;
     my $self = shift;
 
-    return $self->$orig(@_) if $_[0] ne "accessor";
+    my $type = $_[0];
 
     my $name = $self->name;
     my $class = $self->associated_class->name;
+
     my $protection = $self->protection;
+    map { $protection->{$_} ||= "private" } @types;
 
-    if (! grep { $protection eq $_ } qw(private protected public)) {
-        confess "Unknown value '$protection' for option 'protection' on attribute '$name'";
-    }
-
-    return $self->$orig(@_) if $protection eq "public";
+    return $self->$orig(@_) if $protection->{$type} eq "public";
 
     my ($method, $code) = $self->$orig(@_);
 
     my $wrap = Class::MOP::Method::Wrapped->wrap($code);
 
     # private. the caller must be in the same class that the object is blessed into
-    if ($protection eq "private") {
+    if ($protection->{$type} eq "private") {
         $wrap->add_around_modifier(sub {
             my $orig = shift;
             my ($self) = @_;
@@ -44,7 +66,7 @@ around "_process_accessors" => sub {
 
     # protected. the caller must be in the same class or one of of the
     # subclasses of that which the object is blessed into
-    elsif ($protection eq "protected") {
+    elsif ($protection->{$type} eq "protected") {
         $wrap->add_around_modifier(sub {
             my $orig = shift;
             my ($self) = @_;
@@ -55,10 +77,6 @@ around "_process_accessors" => sub {
 
             goto $orig;
         });
-    }
-
-    else {
-        confess "Unknown protection type '$protection'. This is a bug in MooseX::ProtectedAttribute. Report it!";
     }
 
     return ($method, $wrap);
