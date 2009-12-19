@@ -56,7 +56,11 @@ around "_process_accessors" => sub {
             my $orig = shift;
             my ($self) = @_;
 
-            if (caller ne ref $self) {
+            my $n = 0;
+            my $caller;
+            while (($caller = caller($n++)) eq "Class::MOP::Method::Wrapped") { }
+
+            if ($caller ne ref $self) {
                 confess "Method '$method' in class '$class' is private";
             }
 
@@ -71,7 +75,11 @@ around "_process_accessors" => sub {
             my $orig = shift;
             my ($self) = @_;
 
-            if (!(caller eq ref $self || $self->isa(caller))) {
+            my $n = 0;
+            my $caller;
+            while (($caller = caller($n++)) eq "Class::MOP::Method::Wrapped") { }
+
+            if (!($caller eq ref $self || $self->isa($caller))) {
                 confess "Method '$method' in class '$class' is protected";
             }
 
