@@ -1,6 +1,8 @@
 package MooseX::Meta::Attribute::Trait::Protected;
 
 use Moose::Role;
+use Moose::Util qw(meta_attribute_alias);
+
 use MooseX::Types::Moose qw(Str HashRef);
 use MooseX::Types::Structured qw(Dict Optional);
 use MooseX::Types -declare => [qw(ProtectionTable)];
@@ -90,11 +92,8 @@ around "_process_accessors" => sub {
     return ($method, $wrap);
 };
 
+meta_attribute_alias("Protected");
+
 no Moose::Role;
-
-package # hide from PAUSE
-    Moose::Meta::Attribute::Custom::Trait::Protected;
-
-sub register_implementation { "MooseX::Meta::Attribute::Trait::Protected" }
 
 1;
