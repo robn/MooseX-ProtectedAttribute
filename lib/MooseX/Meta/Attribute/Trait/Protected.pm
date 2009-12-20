@@ -62,7 +62,7 @@ around "_process_accessors" => sub {
             my $caller;
             while (($caller = caller($n++)) eq "Class::MOP::Method::Wrapped") { }
 
-            if ($caller ne ref $self) {
+            if ($caller ne blessed $self) {
                 confess "Method '$method' in class '$class' is private";
             }
 
@@ -81,7 +81,7 @@ around "_process_accessors" => sub {
             my $caller;
             while (($caller = caller($n++)) eq "Class::MOP::Method::Wrapped") { }
 
-            if (!($caller eq ref $self || $self->isa($caller))) {
+            if (!($caller eq blessed $self || $self->isa($caller))) {
                 confess "Method '$method' in class '$class' is protected";
             }
 
